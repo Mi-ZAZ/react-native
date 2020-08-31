@@ -82,12 +82,15 @@ RCT_EXPORT_MODULE()
     _presentationBlock([modalHostView reactViewController], viewController, animated, completionBlock);
   } else {
     __weak typeof(self) weakself = self;
+      NSLog(@"<><>enter present %@", viewController.presentingViewController);
     [[modalHostView reactViewController] presentViewController:viewController animated:animated completion:^{
+        NSLog(@"<><>enter present complete");
       !completionBlock ?: completionBlock();
       __strong typeof(weakself) strongself = weakself;
       !strongself.dismissWaitingBlock ?: strongself.dismissWaitingBlock();
       strongself.dismissWaitingBlock = nil;
     }];
+      NSLog(@"<><>enter present2 %@", viewController.presentingViewController);
   }
 }
 
@@ -98,13 +101,14 @@ RCT_EXPORT_MODULE()
   if (_dismissalBlock) {
     _dismissalBlock([modalHostView reactViewController], viewController, animated, nil);
   } else {
-    self.dismissWaitingBlock = ^{
+      NSLog(@"<><>enter dismiss:%@ %@", viewController, viewController.presentingViewController);
+//    self.dismissWaitingBlock = ^{
       [viewController.presentingViewController dismissViewControllerAnimated:animated completion:nil];
-    };
-    if (viewController.presentingViewController) {
-      self.dismissWaitingBlock();
+//    };
+//    if (viewController.presentingViewController) {
+//      self.dismissWaitingBlock();
       self.dismissWaitingBlock = nil;
-    }
+//    }
   }
 }
 

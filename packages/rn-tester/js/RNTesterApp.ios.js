@@ -31,6 +31,8 @@ const {
   useColorScheme,
   View,
   LogBox,
+  Modal,
+  DeviceEventEmitter,
 } = require('react-native');
 
 import type {RNTesterExample} from './types/RNTesterTypes';
@@ -339,7 +341,53 @@ AppRegistry.registerComponent('SetPropertiesExampleApp', () =>
 AppRegistry.registerComponent('RootViewSizeFlexibilityExampleApp', () =>
   require('./examples/RootViewSizeFlexibilityExample/RootViewSizeFlexibilityExampleApp'),
 );
-AppRegistry.registerComponent('RNTesterApp', () => RNTesterApp);
+
+class ModalTesterApp extends React.Component {
+
+  constructor() {
+    super();
+    this.state = {
+      modalVisible: false,
+    };
+  }
+
+  componentDidMount() {
+    this.setState({
+      modalVisible: true,
+    });
+    setTimeout(() => {
+      this.setState({
+        modalVisible: false,
+      })
+    }, 10);
+    DeviceEventEmitter.addListener('ZAZModalViewShow', () => {
+      console.log("<><><> receive show");
+      this.setState({
+        modalVisible: true,
+      });
+    });
+    DeviceEventEmitter.addListener('ZAZModalViewHide', () => {
+      console.log("<><><> receive hide");
+      // this.setState({
+        // modalVisible: false,
+      // });
+    });
+  }
+
+  render() {
+    return (
+      <View style={{backgroundColor: 'yellow', flex: 1}}>
+        <Modal transparent={true} animationType={'fade'} visible={this.state.modalVisible}>
+          <View style={{ width: 200, height: 200, backgroundColor: 'blue' }}>
+            <Text style={{ fontSize: 20 }}>Modal show</Text>
+          </View>
+        </Modal>
+      </View>
+    );
+  }
+}
+
+AppRegistry.registerComponent('RNTesterApp', () => ModalTesterApp);
 
 // Register suitable examples for snapshot tests
 RNTesterList.ComponentExamples.concat(RNTesterList.APIExamples).forEach(
@@ -364,4 +412,4 @@ RNTesterList.ComponentExamples.concat(RNTesterList.APIExamples).forEach(
   },
 );
 
-module.exports = RNTesterApp;
+module.exports = ModalTesterApp;

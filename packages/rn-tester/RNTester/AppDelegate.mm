@@ -22,6 +22,7 @@
 #import <React/RCTDataRequestHandler.h>
 #import <React/RCTFileRequestHandler.h>
 #import <React/RCTRootView.h>
+#import <React/RCTEventDispatcher.h>
 
 #import <cxxreact/JSExecutor.h>
 
@@ -53,6 +54,7 @@
 #import <ReactCommon/RCTTurboModuleManager.h>
 
 #import "RNTesterTurboModuleProvider.h"
+#import "RNTesterCallbackViewController.h"
 
 @interface AppDelegate() <RCTCxxBridgeDelegate, RCTTurboModuleManagerDelegate>{
 
@@ -98,12 +100,41 @@
   UIView *rootView = [[RCTRootView alloc] initWithBridge:_bridge moduleName:@"RNTesterApp" initialProperties:initProps];
 #endif
 
-  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
-  rootViewController.view = rootView;
-  self.window.rootViewController = rootViewController;
+//  rootViewController.view = rootView;
+  UITabBarController *tab = [UITabBarController new];
+  UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:rootViewController];
+  [tab setViewControllers:@[nav]];
+  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  self.window.rootViewController = tab;
   [self.window makeKeyAndVisible];
   [self initializeFlipper:application];
+  [[NSNotificationCenter defaultCenter] addObserverForName:RCTJavaScriptWillStartExecutingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
+    UIViewController *rpVC = [UIViewController new];
+    rpVC.view = rootView;
+    UIViewController *presented = [UIViewController new];
+    presented.view.backgroundColor = [UIColor redColor];
+    presented.modalPresentationStyle = UIModalPresentationFullScreen;
+    [rootViewController presentViewController:presented animated:YES completion:^{
+      [nav pushViewController:rpVC animated:YES];
+    }];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      [rootViewController dismissViewControllerAnimated:YES completion:nil];
+    });
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//      UIViewController *vc = [UIViewController new];
+//      vc.view.backgroundColor = [UIColor redColor];
+//      vc.modalPresentationStyle = UIModalPresentationFullScreen;
+//      [rootViewController presentViewController:vc animated:YES completion:^{
+//        [rootViewController dismissViewControllerAnimated:YES completion:^{
+//          [self.bridge.eventDispatcher sendDeviceEventWithName:@"ZAZModalViewHide" body:nil];
+//        }];
+//      }];
+//      dispatch_async(dispatch_get_main_queue(), ^{
+//        [self.bridge.eventDispatcher sendDeviceEventWithName:@"ZAZModalViewShow" body:nil];
+//      });
+//    });
+  }];
   return YES;
 }
 
